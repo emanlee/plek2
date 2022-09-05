@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 
 from itertools import chain
 from Bio import Seq

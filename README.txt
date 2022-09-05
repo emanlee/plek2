@@ -18,14 +18,12 @@ $ pip install python==3.8.5
 $ pip install numpy
 + [pandas version >= 1.3.3] (http://pandas.pydata.org/)
 $ pip install pandas
++ [tensorflow version = 2.4.1]
+$ pip install tensorflow==2.4.1
 + [keras version = 2.4.3] 
 $ pip install keras==2.4.3
 + [bio version >= 1.3.2]
 $ pip install bio
-+ [os version]
-$ pip install os
-+ [itertools]
-$ pip install itertools
 + [regex]
 $ pip install regex
 --------------------------------------------------
@@ -37,6 +35,10 @@ Steps:
 $ tar zvxf PLEK.2.1.tar.gz
 2. Compile PLEK2.1
 $ cd PLEK2.1
+3. decompress Coding_Net_kmer6_orf.h5.bz2 model
+$ bunzip2 Coding_Net_kmer6_orf.h5.bz2 
+4.  decompress Coding_Net_kmer6_orf_Arabidopsis.h5.bz2 model
+$ bunzip2 Coding_Net_kmer6_orf_Arabidopsis.h5.bz2
 
 
 
@@ -44,7 +46,7 @@ USAGE
 Python PLEK2.py -i fasta_file -m model(ve: vertebrate , pl: plant)
 
 Examples:
-$ python PLEK2.py -i test.fasta -m ve
+$ python PLEK2.py -i test.fa -m ve
 
 ==============
 Siqi Xiong, Master
