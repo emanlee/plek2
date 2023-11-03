@@ -1,12 +1,9 @@
 import os
 import numpy as np
-from tensorflow.keras.models import load_model
-
+from keras.models import load_model
 from itertools import chain
 from Bio import Seq
-
 import regex as re
-
 
 ################  filter_fasta file ##############################
 def filter_fasta(fa):
@@ -93,7 +90,7 @@ def filter_fasta(fa):
             f_new.write(line)
 
     f_new.close()
-
+    
     # Replace R Y M K S W H B V D with N
     file_in = open('replace_u', 'r')
     f_new = open('replace_R', 'w')
@@ -230,69 +227,43 @@ def filter_fasta(fa):
 
 
 #################### get kmer_features #####################################
-def get_kmer(kmer_seqs):
-    class kmer_featurization:
 
+def get_kmer(kmer_seqs):
+    # Define a class for k-mer featurization
+    class kmer_featurization:
+        # Constructor to initialize the class with k value and DNA letters
         def __init__(self, k):
-            """
-            seqs: a list of DNA sequences
-            k: the "k" in k-mer
-            """
             self.k = k
             self.letters = ['A', 'T', 'C', 'G']
-            self.multiplyBy = 4 ** np.arange(k - 1, -1,
-                                             -1)  # the multiplying number for each digit position in the k-number system
-            self.n = 4 ** k  # number of possible k-mers
+            self.multiplyBy = 4 ** np.arange(k - 1, -1, -1)
+            self.n = 4 ** k
 
+        # Method to obtain k-mer features for a list of sequences
         def obtain_kmer_feature_for_a_list_of_sequences(self, seqs, write_number_of_occurrences=False):
-            """
-            Given a list of m DNA sequences, return a 2-d array with shape (m, 4**k) for the 1-hot representation of the kmer features.
-
-            Args:
-              write_number_of_occurrences:
-                a boolean. If False, then in the 1-hot representation, the percentage of the occurrence of a kmer will be recorded; otherwise the number of occurrences will be recorded. Default False.
-            """
             kmer_features = []
             for seq in seqs:
                 this_kmer_feature = self.obtain_kmer_feature_for_one_sequence(seq.upper(),
-                write_number_of_occurrences=write_number_of_occurrences)
+                                                                              write_number_of_occurrences=write_number_of_occurrences)
                 kmer_features.append(this_kmer_feature)
-
             kmer_features = np.array(kmer_features)
-
             return kmer_features
 
+        # Method to obtain k-mer features for one sequence
         def obtain_kmer_feature_for_one_sequence(self, seq, write_number_of_occurrences=False):
-            """
-            Given a DNA sequence, return the 1-hot representation of its kmer feature.
-
-            Args:
-              seq:
-                a string, a DNA sequence
-              write_number_of_occurrences:
-                a boolean. If False, then in the 1-hot representation, the percentage of the occurrence of a kmer will be recorded; otherwise the number of occurrences will be recorded. Default False.
-            """
             number_of_kmers = len(seq) - self.k + 1
             kmer_feature = np.zeros(self.n)
-
-            # k-mer features is transformed into one-hot encoding
             for i in range(number_of_kmers):
                 temporary = seq[i:(i + self.k)]
-                if 'N' not in temporary:  # if 'N' in kmer,no action is performed.(skip 'N')
+                if 'N' not in temporary:
                     this_kmer = seq[i:(i + self.k)]
                     this_numbering = self.kmer_numbering_for_one_kmer(this_kmer)
                     kmer_feature[this_numbering] += 1
-
             if not write_number_of_occurrences:
                 kmer_feature = (kmer_feature / number_of_kmers) * pow(4, (self.k) - 5)
-
             return kmer_feature
 
+        # Method to calculate the numbering for one k-mer
         def kmer_numbering_for_one_kmer(self, kmer):
-            """
-            Given a k-mer, return its numbering (the 0-based position in 1-hot representation)
-            display the position of k
-            """
             digits = []
             for letter in kmer:
                 digits.append(self.letters.index(letter))
@@ -300,17 +271,14 @@ def get_kmer(kmer_seqs):
             numbering = (digits * self.multiplyBy).sum()
             return numbering
 
-    ### get k=6 features
-    # Assign the file to the list line by line, removing the newline after each line
+    # Read sequences from the input file
     with open(kmer_seqs, 'r') as f:
         seq_list = f.read().splitlines()
 
-    # file line count, count how many samples
-    count_line = 0
-    f = open(kmer_seqs, 'r')
-    for line in f.readlines():
-        count_line = count_line + 1
+    # Count the number of sequences in the input file
+    count_line = len(seq_list)
 
+    # Generate k-mer features for k=1 to k=6
     k = 1
     obj = kmer_featurization(k)
     kmer_feature_1 = obj.obtain_kmer_feature_for_a_list_of_sequences(seq_list, write_number_of_occurrences=False)
@@ -341,13 +309,17 @@ def get_kmer(kmer_seqs):
     kmer_feature_6 = obj.obtain_kmer_feature_for_a_list_of_sequences(seq_list, write_number_of_occurrences=False)
     kmer_feature_6 = kmer_feature_6.reshape(count_line, 4096)
 
-    # k=6
+    # Concatenate k-mer features from k=1 to k=6
     kmer_6 = np.concatenate(
         (kmer_feature_1, kmer_feature_2, kmer_feature_3, kmer_feature_4, kmer_feature_5, kmer_feature_6), axis=1)
+
+    # Save the concatenated k-mer features to a file
     np.savetxt("kmer_6.txt", kmer_6)
 
+    
+   
 def get_ORF(fa):
-    # read data
+    # Function to read DNA sequence data from a file
     def read_data(seq_line):
         RNA_data = []
         try:
@@ -356,119 +328,118 @@ def get_ORF(fa):
             for i in range(0, len(lines)):
                 RNA_data.append(lines[i].replace("\n", "").strip().split())
         except:
-            print("抛出异常")
+            print("Exception occurred while reading data")
         finally:
             return RNA_data
 
+    # Read DNA sequences from the input file
     seq = read_data(fa)
     seq = list(chain.from_iterable(seq))
 
-    ###   Calculate the length of the peptide chain,length is the length of the peptide chain
-    startP = re.compile('ATG')  # The starting position is ATG
+    # ORF detection
+    startP = re.compile('ATG')  # Start codon is ATG
     nuc = seq
-    longest = (0,)  # The length of the peptide chain
+    longest = (0,)  # Length of the peptide chain
     length = []
     for i in range(len(nuc)):
-        for m in startP.finditer(nuc[i], overlapped=True):  # find the location of all the start codons
-            if len(Seq.Seq(nuc[i])[m.start():].translate(to_stop=True)) > longest[0]:  # longet[0] , the starting position of ORF is the longest length of the peptide chain
-                pro = Seq.Seq(nuc[i])[m.start():].translate(to_stop=True)  # pro = peptides
+        for m in startP.finditer(nuc[i], overlapped=True):
+            if len(Seq.Seq(nuc[i])[m.start():].translate(to_stop=True)) > longest[0]:
+                pro = Seq.Seq(nuc[i])[m.start():].translate(to_stop=True)
                 longest = (len(pro),
                            m.start(),
                            str(pro),
                            nuc[i][m.start():m.start() + len(pro) * 3 + 3])
-        longest = (0,)  # at the end of each large cycle, the length of the peptide chain is assigned a value of 0
+        longest = (0,)
         length.append(len(pro) + 1)
 
-    # Take the log base 10 of the length of the peptide chain
-    length_log10 = []
+    # Calculate the log base 10 of the peptide chain length
     length_log10 = np.log10(length)
 
+    # Normalize the ORF length data
     orf_normalize = []
     for i in range(len(length_log10 - 1)):
-        x = float(length_log10[i] - 0.48) / (4 - 0.48) * 0.1
+        x = float(length_log10[i] - 0.48) / (4 - 0.48)
         orf_normalize.append(x)
 
-    ### Save the list data in TXT format by row and read it
+    # Save the normalized data to a file
     with open('orf_length.txt', 'w') as f:
         for i in orf_normalize:
             f.write(str(i) + '\n')
 
-def contact(kmer,ORF):
+
+def contact(kmer, ORF):
+    # Load k-mer and ORF data from files
     k_mer = np.loadtxt(kmer)
     ORF = np.loadtxt(ORF)
 
+    # Combine k-mer and ORF features
     features = np.column_stack((k_mer, ORF))
     np.savetxt('features.txt', features, fmt='%0.8f')
 
     os.remove('replace_V')
-    os.remove('seq_upper.fasta')
-
-###################################### The feature file is input into the network model for prediction   ##################################
+    os.remove('seq_upper.fasta')  
 
 def read_data(human_data):
-   RNA_data = []
-   try:
-      with open(human_data,"rt") as fp:
-         lines = fp.readlines()
-         # print(lines)
-      for i in range(0,len(lines)):           # Read from the first line
-         RNA_data.append(lines[i].replace("\n","").strip().split())
-   except:
-      print("抛出异常")
-   finally:
-      return RNA_data
+    RNA_data = []
+    try:
+        with open(human_data, "rt") as fp:
+            lines = fp.readlines()
+        for i in range(0, len(lines)):
+            RNA_data.append(lines[i].replace("\n", "").strip().split())
+    except:
+        print("Exception occurred while reading data")
+    finally:
+        return RNA_data
 
 
-## 初始化数据
 def init_data(human_data):
-   temp_datas = read_data(human_data)
-   if len(temp_datas)<=0:
-      print("数据初始化失败")
-   else:
-      RNA_data = np.array(temp_datas)     #create array
-      nums = RNA_data.astype(np.float)
-      return nums
+    temp_datas = read_data(human_data)
+    if len(temp_datas) <= 0:
+        print("Data initialization failed")
+    else:
+        RNA_data = np.array(temp_datas)
+        nums = RNA_data[:, :]
+        nums = nums.astype(np.float)
+        return nums
 
-nums = init_data("features.txt")
 
-def prediction(dat,md):
-   if md == 've':
-       model = load_model('Coding_Net_kmer6_orf.h5')
-   else:
-       model = load_model('Coding_Net_kmer6_orf_Arabidopsis.h5')
-   Y = model.predict_classes(dat)
-   labels = np.array(Y)
-   # save results file
-   np.savetxt('results',labels,fmt='%d')
+def prediction(dat, md):
+    if md == 've':
+        model = load_model('Coding_Net_kmer6_orf.h5')
+    else:
+        model = load_model('Coding_Net_kmer6_orf_Arabidopsis.h5')
 
-   return labels
+    Y = model.predict_classes(dat)
+    labels = np.array(Y)
+    np.savetxt('results', labels, fmt='%d')
+    return labels
 
 
 def output_acc(Y):
-   seq_len = len(Y)
-   noncoding = 0
-   coding = 1
-   for i in range(len(Y)):
-      if Y[i] == 0:
-         noncoding = noncoding + 1
-      else:
-          coding = coding + 1
-   pred_noncoding_acc = noncoding / seq_len
-   pred_coding_acc = 1-pred_noncoding_acc
-   acc = [pred_noncoding_acc,pred_coding_acc]
-   print('non-coding =', pred_noncoding_acc)
-   print('coding =' , pred_coding_acc)
+    seq_len = len(Y)
+    noncoding = 0
+    coding = 0
+    for i in range(len(Y)):
+        if Y[i] == 0:
+            noncoding = noncoding + 1
+        else:
+            coding = coding + 1
+    pred_noncoding_acc = noncoding / seq_len
+    pred_coding_acc = 1 - pred_noncoding_acc
+    acc = [pred_noncoding_acc, pred_coding_acc]
+    print('non-coding =', pred_noncoding_acc)
+    print('coding =', pred_coding_acc)
 
-   # remove middle file
-   os.remove('define_lines.fasta')
-   os.remove('filter_sequence_minlength.fasta')
-   os.remove('kmer_6.txt')
-   os.remove('kmer_seqs')
-   # os.remove('orf_length.txt')
-   os.remove('seq_lines.fasta')
-   os.remove('seq_to_one_line.fasta')
+    ### remove middle file
+    os.remove('define_lines.fasta')
+    os.remove('filter_sequence_minlength.fasta')
+    os.remove('kmer_6.txt')#
+    os.remove('kmer_seqs')
+    os.remove('orf_length.txt')
+    os.remove('seq_lines.fasta')
+    os.remove('seq_to_one_line.fasta')
+    os.remove('features.txt')
 
-   return acc
-
+    return acc
 
 

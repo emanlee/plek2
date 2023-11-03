@@ -1,63 +1,65 @@
-
 import numpy as np
-import pandas
+import pandas as pd
+from functions import filter_fasta, get_kmer, get_ORF, contact, prediction, init_data, output_acc
+import argparse
+import sys
 
-from functions import filter_fasta
-from functions import get_kmer
-from functions import get_ORF
-from functions import contact
-from functions import prediction
-from functions import init_data
-from functions import output_acc
+def parse_arguments():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Instruction of PLEK2(more details in README.txt):')
+    parser.add_argument('-i', '--input_file', help='Input file in fasta format', required=True)
+    parser.add_argument('-m', '--model', help='ve: vertebrate, pl: plant', required=True)
+    # parser.add_argument('-o', '--output_file', help='Output file', required=True)
+    return parser.parse_args()
 
+def main():
+    args = parse_arguments()
 
-import  argparse
-parser = argparse.ArgumentParser(description='Instruction of PLEK2(more details in README.txt):')
-parser.add_argument('-i','--input_file', help='Input file in fasta format',required=True)
-parser.add_argument('-m','--model',help='ve: vertebrate , pl = plant ', required=True)
-# parser.add_argument('-o','--output_file',help='Output file in fasta format', required=True)
-args = parser.parse_args()
+    try:
+        # Read fasta file
+        file = filter_fasta(args.input_file)
+    except FileNotFoundError:
+        print("Error: File not found.")
+        sys.exit(1)
 
-# read the file
+    # Extract k-mer sequences
+    get_kmer('kmer_seqs')
 
-file = filter_fasta(args.input_file)
-get_kmer('kmer_seqs')
-get_ORF('seq_lines.fasta')
-contact('kmer_6.txt','orf_length.txt')
+    # Extract ORF sequences
+    get_ORF('seq_lines.fasta')
 
-print("loading data ...")
+    # Get associations between k-mers and ORFs
+    contact('kmer_6.txt', 'orf_length.txt')
 
-nums = init_data("features.txt")
+    print("loading data ...")
 
-##准备数据进行预测
-dataframe = pandas.DataFrame(nums)
-dataset = dataframe.values
+    # Initialize data
+    nums = init_data("features.txt")
 
-x = dataset.astype(float)
+    # Prepare data for prediction
+    dataframe = pd.DataFrame(nums)
+    dataset = dataframe.values
 
-X = np.zeros(shape=(len(x),1,5461,1))
+    X = np.zeros(shape=(len(dataset), 1, 5461, 1))
 
-for i in range(len(x)):
-	tp = np.asarray(x[i])
-	tp = np.resize(tp,(1,5461,1))
-	X[i] = tp
+    for i, x in enumerate(dataset):
+        x = np.asarray(x)
+        x = np.resize(x, (1, 5461, 1))
+        X[i] = x
 
+    print("Loading Model and predicting ...")
 
-print("Loading Model and predicting ...")
+    md = args.model
 
-md = args.model
+    # Perform prediction
+    out = prediction(X, md)
 
-out = prediction(X,md)
+    print(out)
 
-print(out)
+    # Output prediction results
+    prediction_result = output_acc(out)
 
-prediction = output_acc(out)
+    # out_file = open(args.output_file, 'w+')
 
-# out_file = open(args.output_file,'w+')
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    main()

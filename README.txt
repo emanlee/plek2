@@ -13,17 +13,18 @@ Requirements
 ------------
 + [Linux]
 + [Python version > = 3.8.5] (http://www.python.org/)
-$ pip install python==3.8.5
 + [numpy version >= 1.2.2] (http://www.numpy.org/)
 $ pip install numpy
 + [pandas version >= 1.3.3] (http://pandas.pydata.org/)
 $ pip install pandas
-+ [tensorflow version = 2.4.1]
-$ pip install tensorflow==2.4.1
 + [keras version = 2.4.3] 
 $ pip install keras==2.4.3
 + [bio version >= 1.3.2]
 $ pip install bio
++ [os version]
+$ pip install os
++ [itertools]
+$ pip install itertools
 + [regex]
 $ pip install regex
 --------------------------------------------------
@@ -31,25 +32,25 @@ $ pip install regex
 
 
 Steps:
-1. Download PLEK.2.1.tar.gz from * and decompress it.
-$ tar zvxf PLEK.2.1.tar.gz
-2. Compile PLEK2.1
-$ cd PLEK2.1
+1.Download PLEK2_model_v3.tar.gz from https://sourceforge.net/projects/plek2/files/ and decompress it.
+$ tar zvxf PLEK2_model_v3
+2. Compile PLEK2_model_v3
+$ cd PLEK2_model_v3
 3. decompress Coding_Net_kmer6_orf.h5.bz2 model
 $ bunzip2 Coding_Net_kmer6_orf.h5.bz2 
 4.  decompress Coding_Net_kmer6_orf_Arabidopsis.h5.bz2 model
 $ bunzip2 Coding_Net_kmer6_orf_Arabidopsis.h5.bz2
 
 
-
 USAGE
 Python PLEK2.py -i fasta_file -m model(ve: vertebrate , pl: plant)
-
+#-fasta        The name of a fasta file, its sequences are to be predicted.
+   
 Examples:
-$ python PLEK2.py -i test.fa -m ve
+$ python PLEK2.py -i PLEK2_test.fa -m ve
 
 ==============
-Siqi Xiong, Master
+Haotian Zhou, Master
 School of Computer Science and Engineering,
 Xi'an University of Technology,
 5 South Jinhua Road,
@@ -61,7 +62,7 @@ Xi'an University of Technology,
 5 South Jinhua Road,
 Xi'an, Shaanxi 710048, P.R China
 
-xsq1315459270@163.com (163.com)
+2350837044@qq.com 
 
 liaiminmail AT gmail.com
 emanlee815 AT 163.com
