@@ -13,26 +13,24 @@ Requirements
 ------------
 + [Linux]
 + [Python version > = 3.8.5] (http://www.python.org/)
-+ [numpy version >= 1.2.2] (http://www.numpy.org/)
-$ pip install numpy
-+ [pandas version >= 1.3.3] (http://pandas.pydata.org/)
-$ pip install pandas
-+ [keras version = 2.4.3] 
-$ pip install keras==2.4.3
-+ [bio version >= 1.3.2]
-$ pip install bio
-+ [os version]
-$ pip install os
-+ [itertools]
-$ pip install itertools
-+ [regex]
+install regex package
 $ pip install regex
+install keras==2.4.3 package
+$ pip install keras==2.4.3
+install pandas package
+$ pip install pandas
+install tensorflow==2.4.1 package
+$ pip install tensorflow==2.4.1
+install bio version >= 1.3.2 package
+$ pip install bio
+install numpy package
+$ pip install numpy==1.19.2
 --------------------------------------------------
 
 
 
 Steps:
-1.Download PLEK2_model_v3.tar.gz from https://sourceforge.net/projects/plek2/files/ and decompress it.
+1. Download PLEK2_model_v3.tar.gz from https://sourceforge.net/projects/plek2/files/ and decompress it.
 $ tar zvxf PLEK2_model_v3
 2. Compile PLEK2_model_v3
 $ cd PLEK2_model_v3
